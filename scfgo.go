@@ -96,7 +96,7 @@ func (h *Handler) Handle(ctx context.Context, r *APIGatewayRequest) (*APIGateway
 }
 
 func toQueryString(m map[string]interface{}) string {
-	var values url.Values
+	values := make(url.Values)
 	for name, value := range m {
 		switch value.(type) {
 		case string:
@@ -116,6 +116,7 @@ func toQueryString(m map[string]interface{}) string {
 }
 
 func (r *APIGatewayRequest) toHTTPRequest(ctx context.Context, port int) *http.Request {
+	// consider replace with `http.NewRequest`
 	req := http.Request{}
 	req.Method = r.Method
 	req.URL = &url.URL{
@@ -124,23 +125,24 @@ func (r *APIGatewayRequest) toHTTPRequest(ctx context.Context, port int) *http.R
 		RawPath:  r.Path,
 		RawQuery: toQueryString(r.QueryString),
 	}
+	req.Header = make(http.Header)
 	for name, value := range r.Headers {
-		req.Header.Add(name, value)
+		req.Header.Add(http.CanonicalHeaderKey(name), value)
 	}
 	// set request context to header
 	funcCtx, ok := functioncontext.FromContext(ctx)
 	if ok {
-		req.Header.Add("x-scf-requestid", funcCtx.RequestID)
+		req.Header.Add(http.CanonicalHeaderKey("x-scf-requestid"), funcCtx.RequestID)
 	}
-	req.Header.Add("x-apigateway-serviceid", r.Context.ServiceID)
-	req.Header.Add("x-apigateway-requestid", r.Context.RequestID)
-	req.Header.Add("x-apigateway-method", r.Context.Method)
-	req.Header.Add("x-apigateway-path", r.Context.Path)
-	req.Header.Add("x-apigateway-sourceip", r.Context.SourceIP)
-	req.Header.Add("x-forwarded-for", r.Context.SourceIP)
-	req.Header.Add("x-apigateway-stage", r.Context.Stage)
+	req.Header.Add(http.CanonicalHeaderKey("x-apigateway-serviceid"), r.Context.ServiceID)
+	req.Header.Add(http.CanonicalHeaderKey("x-apigateway-requestid"), r.Context.RequestID)
+	req.Header.Add(http.CanonicalHeaderKey("x-apigateway-method"), r.Context.Method)
+	req.Header.Add(http.CanonicalHeaderKey("x-apigateway-path"), r.Context.Path)
+	req.Header.Add(http.CanonicalHeaderKey("x-apigateway-sourceip"), r.Context.SourceIP)
+	req.Header.Add(http.CanonicalHeaderKey("x-forwarded-for"), r.Context.SourceIP)
+	req.Header.Add(http.CanonicalHeaderKey("x-apigateway-stage"), r.Context.Stage)
 	if r.Context.Identity.SecretID != nil {
-		req.Header.Add("x-apigateway-secretid", *r.Context.Identity.SecretID)
+		req.Header.Add(http.CanonicalHeaderKey("x-apigateway-secretid"), *r.Context.Identity.SecretID)
 	}
 	req.Body = ioutil.NopCloser(bytes.NewBufferString(r.Body))
 	return &req
