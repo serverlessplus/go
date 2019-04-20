@@ -122,6 +122,7 @@ func (r *APIGatewayRequest) toHTTPRequest(ctx context.Context, port int) *http.R
 	req.URL = &url.URL{
 		Scheme:   "http",
 		Host:     fmt.Sprintf("%s:%d", Host, port),
+		Path:     r.Path,
 		RawPath:  r.Path,
 		RawQuery: toQueryString(r.QueryString),
 	}
