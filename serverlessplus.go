@@ -1,4 +1,4 @@
-package scfgo
+package serverlessplus
 
 import (
 	"bytes"
@@ -154,6 +154,7 @@ func (h *Handler) toAPIGatewayResponse(r *http.Response) (*APIGatewayResponse, e
 		StatusCode: r.StatusCode,
 		Headers:    make(map[string]string),
 	}
+	resp.Headers["x-powered-by"] = "serverlessplus"
 	var contentType string
 	for name, values := range r.Header {
 		resp.Headers[name] = values[0]
