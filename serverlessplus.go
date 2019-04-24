@@ -78,8 +78,11 @@ func (h *Handler) WithClient(c *http.Client) *Handler {
 }
 
 // WithBinaryMIMETypes allows user to specify MIME types that should be base64 encoded
-func (h *Handler) WithBinaryMIMETypes(types map[string]struct{}) *Handler {
-	h.binaryMIMETypes = types
+func (h *Handler) WithBinaryMIMETypes(types []string) *Handler {
+	h.binaryMIMETypes = make(map[string]struct{})
+	for _, t := range types {
+		h.binaryMIMETypes[t] = struct{}{}
+	}
 	return h
 }
 
