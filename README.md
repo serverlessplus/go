@@ -66,8 +66,7 @@ func init() {
 	go http.Serve(l, r)
 
 	// setup handler
-	types := make(map[string]struct{})
-	types["image/png"] = struct{}{}
+	types := []string{"image/png"}
 	handler = serverlessplus.NewHandler(port).WithBinaryMIMETypes(types)
 }
 
